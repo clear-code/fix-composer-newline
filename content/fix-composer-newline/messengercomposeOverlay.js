@@ -1,104 +1,108 @@
-Util.DEBUG = true;
+window.addEventListener("load", function loader() {
+    window.removeEventListener("load", loader, true);
 
-window.addEventListener("load", function () {
-  function createHTMLElement(tagName, dirty) {
-    return document.createElementNS("http://www.w3.org/1999/xhtml", tagName);
-  }
+    var Cc = Components.classes;
+    var Ci = Components.interfaces;
 
-  function createQuoteNodeFromFragment(fragment) {
-    var quoteNode = createHTMLElement("span");
-    quoteNode.setAttribute("_moz_quote", "true");
-    quoteNode.setAttribute("_moz_dirty", "true");
-    quoteNode.appendChild(fragment);
-    return quoteNode;
-  }
+    function createEditorElement(tagName) {
+      return doc.createElement(tagName);
+    }
 
-  function removeChildIf(childNode, expectedName) {
-    if (childNode.localName &&
-        childNode.localName.toLowerCase() === expectedName)
-      childNode.parentNode.removeChild(childNode);
-  }
+    function createQuoteNodeFromFragment(fragment) {
+      var quoteNode = createEditorElement("SPAN");
+      quoteNode.setAttribute("_moz_quote", "true");
+      quoteNode.setAttribute("_moz_dirty", "true");
+      quoteNode.appendChild(fragment);
+      return quoteNode;
+    }
 
-  function getFirstRange(win) {
-    var selection = win.getSelection();
-    return selection && selection.getRangeAt(0);
-  }
+    function removeChildIf(childNode, expectedName) {
+      if (childNode.localName &&
+          childNode.localName.toLowerCase() === expectedName)
+        childNode.parentNode.removeChild(childNode);
+    }
 
-  function ensureCursorIsVisible() {
-    var editor = getEditor();
+    function getFirstRange(win) {
+      var selection = win.getSelection();
+      return selection && selection.getRangeAt(0);
+    }
 
-    var oldFocusNode = editor.selection.focusNode;
-    var oldFocusOffset = editor.selection.focusOffset;
+    function ensureCursorIsVisible() {
+      var editor = getEditor();
 
-    goDoCommand('cmd_charNext');
+      var oldFocusNode = editor.selection.focusNode;
+      var oldFocusOffset = editor.selection.focusOffset;
 
-    var newFocusNode = editor.selection.focusNode;
-    var newFocusOffset = editor.selection.focusOffset;
+      goDoCommand('cmd_charNext');
 
-    if (oldFocusNode !== newFocusNode ||
-        oldFocusOffset !== newFocusOffset)
-      goDoCommand('cmd_charPrevious');
-  }
+      var newFocusNode = editor.selection.focusNode;
+      var newFocusOffset = editor.selection.focusOffset;
 
-  var editorElement = document.getElementById("content-frame");
-  if (!editorElement)
-    return;
-  if (editorElement.getAttribute("editortype") !== "textmail")
-    return;
+      if (oldFocusNode !== newFocusNode ||
+          oldFocusOffset !== newFocusOffset)
+        goDoCommand('cmd_charPrevious');
+    }
 
-  function getEditor() {
-    return editorElement.getEditor(editorElement.contentWindow);
-  }
-
-  var doc = editorElement.contentDocument;
-  var win = editorElement.contentWindow;
-
-  editorElement.addEventListener("keypress", function (ev) {
-    if (!(ev.keyCode === KeyEvent.DOM_VK_ENTER ||
-          ev.keyCode === KeyEvent.DOM_VK_RETURN))
+    var editorElement = document.getElementById("content-frame");
+    if (!editorElement)
+      return;
+    if (editorElement.getAttribute("editortype") !== "textmail")
       return;
 
-    var selection = win.getSelection();
-    if (!selection.isCollapsed)
-      return;
+    function getEditor() {
+      return editorElement.getEditor(editorElement.contentWindow);
+    }
 
-    var currentNode = selection.anchorNode;
-    var quoteNode   = currentNode.parentNode;
+    var doc = editorElement.contentDocument;
+    var win = editorElement.contentWindow;
 
-    if (!quoteNode || quoteNode.getAttribute("_moz_quote") !== "true")
-      return;
+    editorElement.addEventListener("keypress", function (ev) {
+      if (!(ev.keyCode === KeyEvent.DOM_VK_ENTER ||
+            ev.keyCode === KeyEvent.DOM_VK_RETURN))
+        return;
 
-    ev.preventDefault();
+      var selection = win.getSelection();
+      if (!selection.isCollapsed)
+        return;
 
-    var range = selection.getRangeAt(0);
-    var cursor = range.startOffset;
+      var currentNode = selection.anchorNode;
+      var quoteNode   = currentNode.parentNode;
 
-    // Extract the left part (from the cursor) of quotation
-    range.setStartBefore(quoteNode.firstChild);
-    range.setEnd(currentNode, cursor);
-    var leftFragment = range.extractContents();
-    var leftQuoteNode = createQuoteNodeFromFragment(leftFragment);
+      if (!quoteNode || quoteNode.getAttribute("_moz_quote") !== "true")
+        return;
 
-    // Now quoteNode represents right part of the quotation
-    var rightQuoteNode = quoteNode;
+      ev.preventDefault();
+      ev.stopPropagation();
 
-    // Ensure leftQuoteNode and rightQuoteNode does not have redundant <br>
-    removeChildIf(leftQuoteNode.lastChild, "br");
-    removeChildIf(rightQuoteNode.firstChild, "br");
+      var range = selection.getRangeAt(0);
+      var cursor = range.startOffset;
 
-    // Append new line node between leftQuoteNode and rightQuoteNode
-    var newlineNode = createHTMLElement("br");
-    rightQuoteNode.parentNode.insertBefore(newlineNode, rightQuoteNode);
+      // Extract the left part (from the cursor) of quotation
+      range.setStartBefore(quoteNode.firstChild);
+      range.setEnd(currentNode, cursor);
+      var leftFragment = range.extractContents();
+      var leftQuoteNode = createQuoteNodeFromFragment(leftFragment);
 
-    // Append leftQuoteNode
-    rightQuoteNode.parentNode.insertBefore(leftQuoteNode, newlineNode);
+      // Now quoteNode represents right part of the quotation
+      var rightQuoteNode = quoteNode;
 
-    // Now, set cursor position to the head of the rightQuoteNode
-    win.getSelection().removeAllRanges();
-    var newRange = document.createRange();
-    newRange.setStart(rightQuoteNode, 0);
-    win.getSelection().addRange(newRange);
+      // Ensure leftQuoteNode and rightQuoteNode does not have redundant <br>
+      removeChildIf(leftQuoteNode.lastChild, "br");
+      removeChildIf(rightQuoteNode.firstChild, "br");
 
-    ensureCursorIsVisible();
-  }, true);
-}, true);
+      // Append new line node between leftQuoteNode and rightQuoteNode
+      var newlineNode = createEditorElement("BR");
+      rightQuoteNode.parentNode.insertBefore(newlineNode, rightQuoteNode);
+
+      // Append leftQuoteNode
+      rightQuoteNode.parentNode.insertBefore(leftQuoteNode, newlineNode);
+
+      // Now, set cursor position to the head of the rightQuoteNode
+      win.getSelection().removeAllRanges();
+      var newRange = document.createRange();
+      newRange.setStart(rightQuoteNode, 0);
+      win.getSelection().addRange(newRange);
+
+      ensureCursorIsVisible();
+    }, true);
+}, false);
