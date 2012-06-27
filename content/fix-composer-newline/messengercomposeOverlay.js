@@ -80,7 +80,8 @@ window.addEventListener("load", function loader() {
       // Extract the left part (from the cursor) of quotation
       range.setStartBefore(quoteNode.firstChild);
       range.setEnd(currentNode, cursor);
-      var leftFragment = range.extractContents();
+      var leftFragment = range.cloneContents();
+      range.deleteContents();
       var leftQuoteNode = createQuoteNodeFromFragment(leftFragment);
 
       // Now quoteNode represents right part of the quotation
