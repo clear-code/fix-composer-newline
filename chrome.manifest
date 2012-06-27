@@ -1,0 +1,7 @@
+content	fix-composer-newline	content/fix-composer-newline/
+
+locale	fix-composer-newline	ja	locale/ja/fix-composer-newline/
+
+overlay	chrome://messenger/content/messengercompose/messengercompose.xul	chrome://fix-composer-newline/content/messengercomposeOverlay.xul
+
+resource fix-composer-newline-modules modules/
