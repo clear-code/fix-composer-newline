@@ -3,7 +3,7 @@
          xmlns:em="http://www.mozilla.org/2004/em-rdf#"
          xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
   <RDF:Description RDF:about="urn:mozilla:install-manifest"
-                   em:id="fix-composer-newline@clear-code.inc"
+                   em:id="fix-composer-newline@clear-code.com"
                    em:name="Fix Composer Newline"
                    em:version="1.0.1"
                    em:description="Fix composer's odd behavior around line breaks in quoted text."
