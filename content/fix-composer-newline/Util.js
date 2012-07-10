@@ -465,5 +465,74 @@ var Util = {
 
   equal: function (a, b, propNames) {
     return propNames.every(function (propName) { return a[propName] === b[propName]; });
+  },
+
+  escapeHTMLSpecialCharacters: function (string) {
+    return string.replace(/\&/g, '&amp;')
+                 .replace(/</g, '&lt;')
+                 .replace(/>/g, '&gt;')
+                 .replace(/"/g, '&quot;');
+  },
+
+  nodeToString: function (node, selectionRange) {
+    var prefix = '';
+    var children = '';
+    var suffix = '';
+    switch (node.nodeType) {
+      case Ci.nsIDOMNode.ELEMENT_NODE:
+        prefix = '<'+node.localName;
+        if (node.attributes.length) {
+          var attributes = node.attributes;
+          for (var i = 0, maxi = attributes.length; i < maxi; i++) {
+            prefix += ' '+attributes[i].name+'='+
+                          '"'+this.escapeHTMLSpecialCharacters(attributes[i].value)+'"';
+          }
+        }
+        prefix += '>';
+        suffix = '</'+node.localName+'>';
+      case Ci.nsIDOMNode.DOCUMENT_NODE:
+        var childNodes = node.childNodes;
+        for (var i = 0, maxi = childNodes.length; i < maxi; i++) {
+          if (selectionRange) {
+            if (selectionRange.endContainer == node && selectionRange.endOffset == i)
+              children += '[/SELECTION]';
+            if (selectionRange.startContainer == node && selectionRange.startOffset == i)
+              children += '[SELECTION]';
+          }
+          children += this.nodeToString(childNodes[i], selectionRange);
+          children += '\n';
+        }
+        if (children) {
+          children = children.replace(/^/gm, '  ');
+          // remove indent for the last line because the line is for the end tag.
+          children = children.replace(/\n\s+$/, '\n');
+          if (prefix)
+            prefix += '\n';
+        }
+        break;
+
+      case Ci.nsIDOMNode.TEXT_NODE:
+      case Ci.nsIDOMNode.CDATA_NODE:
+        prefix = node.nodeValue;
+        if (selectionRange) {
+          if (selectionRange.endContainer == node) {
+            prefix = prefix.split('');
+            prefix.splice(selectionRange.endOffset, 0, ['[/SELECTION]']);
+            prefix = prefix.join('');
+          }
+          if (selectionRange.startContainer == node) {
+            prefix = prefix.split('');
+            prefix.splice(selectionRange.startOffset, 0, ['[SELECTION]']).join('');
+            prefix = prefix.join('');
+          }
+        }
+        prefix = this.escapeHTMLSpecialCharacters(prefix);
+        break;
+
+      default:
+        prefix = '<#NODE:' + String(node) + '>';
+        break;
+    }
+    return prefix + children + suffix;
   }
 };

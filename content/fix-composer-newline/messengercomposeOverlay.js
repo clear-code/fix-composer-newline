@@ -5,6 +5,7 @@ window.addEventListener("load", function loader() {
     var Ci = Components.interfaces;
 
     function createEditorElement(tagName) {
+      var doc = editorElement.contentDocument;
       return doc.createElement(tagName);
     }
 
@@ -23,6 +24,7 @@ window.addEventListener("load", function loader() {
     }
 
     function getFirstRange(win) {
+      var win = editorElement.contentWindow;
       var selection = win.getSelection();
       return selection && selection.getRangeAt(0);
     }
@@ -53,10 +55,19 @@ window.addEventListener("load", function loader() {
       return editorElement.getEditor(editorElement.contentWindow);
     }
 
-    var doc = editorElement.contentDocument;
-    var win = editorElement.contentWindow;
-
     editorElement.addEventListener("keypress", function (ev) {
+      var doc = editorElement.contentDocument;
+      var win = editorElement.contentWindow;
+
+      if (ev.ctrlKey && ev.charCode === 'u'.charCodeAt(0)) {
+        var selection = win.getSelection();
+        var selectionRange = selection && selection.getRangeAt(0);
+        var source = Util.nodeToString(doc, selectionRange);
+        window.openDialog('view-source:data:text/plain,' + encodeURIComponent(source),
+                          '_blank', 'all,dialog=no,centerscreen');
+        return;
+      }
+
       if (!(ev.keyCode === KeyEvent.DOM_VK_ENTER ||
             ev.keyCode === KeyEvent.DOM_VK_RETURN))
         return;
