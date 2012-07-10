@@ -494,20 +494,24 @@ var Util = {
         var childNodes = node.childNodes;
         for (var i = 0, maxi = childNodes.length; i < maxi; i++) {
           if (selectionRange) {
-            if (selectionRange.endContainer == node && selectionRange.endOffset == i)
-              children += '[/SELECTION]';
             if (selectionRange.startContainer == node && selectionRange.startOffset == i)
               children += '[SELECTION]';
+            if (selectionRange.endContainer == node && selectionRange.endOffset == i)
+              children += '[/SELECTION]';
           }
           children += this.nodeToString(childNodes[i], selectionRange);
           children += '\n';
         }
         if (children) {
-          children = children.replace(/^/gm, '  ');
+          children = children.replace('[SELECTION][/SELECTION]', '[SELECTION /]')
+                             .replace(/^/gm, '  '); // add indent
           // remove indent for the last line because the line is for the end tag.
           children = children.replace(/\n\s+$/, '\n');
           if (prefix)
             prefix += '\n';
+        } else {
+          prefix = prefix.replace(/>$/, ' />');
+          suffix = '';
         }
         break;
 
@@ -515,15 +519,21 @@ var Util = {
       case Ci.nsIDOMNode.CDATA_NODE:
         prefix = node.nodeValue;
         if (selectionRange) {
-          if (selectionRange.endContainer == node) {
+          if (selectionRange.isCollapsed) {
             prefix = prefix.split('');
-            prefix.splice(selectionRange.endOffset, 0, ['[/SELECTION]']);
+            prefix.splice(selectionRange.startOffset, 0, ['[SELECTION /]']);
             prefix = prefix.join('');
-          }
-          if (selectionRange.startContainer == node) {
-            prefix = prefix.split('');
-            prefix.splice(selectionRange.startOffset, 0, ['[SELECTION]']).join('');
-            prefix = prefix.join('');
+          } else {
+            if (selectionRange.endContainer == node) {
+              prefix = prefix.split('');
+              prefix.splice(selectionRange.endOffset, 0, ['[/SELECTION]']);
+              prefix = prefix.join('');
+            }
+            if (selectionRange.startContainer == node) {
+              prefix = prefix.split('');
+              prefix.splice(selectionRange.startOffset, 0, ['[SELECTION]']).join('');
+              prefix = prefix.join('');
+            }
           }
         }
         prefix = this.escapeHTMLSpecialCharacters(prefix);

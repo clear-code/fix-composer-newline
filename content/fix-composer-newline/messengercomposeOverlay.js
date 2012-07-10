@@ -64,7 +64,10 @@ window.addEventListener("load", function loader() {
         var selectionRange = selection && selection.getRangeAt(0);
         var source = Util.nodeToString(doc, selectionRange);
         window.openDialog('view-source:data:text/plain,' + encodeURIComponent(source),
-                          '_blank', 'all,dialog=no,centerscreen');
+                          '_blank',
+                          'all,dialog=no,centerscreen'+
+                            ',width='+Math.floor(screen.availWidth*0.8)+
+                            ',height='+Math.floor(screen.availHeight*0.8));
         return;
       }
 
