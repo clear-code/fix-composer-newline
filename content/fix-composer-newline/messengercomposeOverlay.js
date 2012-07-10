@@ -48,11 +48,21 @@ window.addEventListener("load", function loader() {
     var editorElement = document.getElementById("content-frame");
     if (!editorElement)
       return;
-    if (editorElement.getAttribute("editortype") !== "textmail")
-      return;
 
     function getEditor() {
       return editorElement.getEditor(editorElement.contentWindow);
+    }
+
+    function isHTML() {
+      if (editorElement.getAttribute("editortype") === "textmail")
+        return false;
+
+      // with messagetypeswitcher, the editor element can be htmlmail mode
+      // even if it works as a plaintext editor.
+      if (editorElement.contentDocument.body.getAttribute("messagetypeswitcher-plaintext-body") === "true")
+        return false;
+
+      return true;
     }
 
     editorElement.addEventListener("keypress", function (ev) {
@@ -70,6 +80,9 @@ window.addEventListener("load", function loader() {
                             ',height='+Math.floor(screen.availHeight*0.8));
         return;
       }
+
+      if (isHTML())
+        return;
 
       if (!(ev.keyCode === KeyEvent.DOM_VK_ENTER ||
             ev.keyCode === KeyEvent.DOM_VK_RETURN))
