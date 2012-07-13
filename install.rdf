@@ -5,7 +5,7 @@
   <RDF:Description RDF:about="urn:mozilla:install-manifest"
                    em:id="fix-composer-newline@clear-code.com"
                    em:name="Fix Composer Newline"
-                   em:version="1.0.2"
+                   em:version="1.0.3"
                    em:description="Fix composer's odd behavior around line breaks in quoted text."
                    em:creator="ClearCode inc."
                    em:unpack="true">
